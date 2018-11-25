@@ -37,8 +37,8 @@ class User {
     /**
      * Create a new user.
      *
-     * Creates a new user from the given values and instantly save the new user to the database. Returns the new user
-     * with its assigned id.
+     * Creates a new user from the given values and instantly saves it to the database. Returns the new user with its
+     * assigned id.
      *
      * @param string $username
      * @param string $password_hash
@@ -63,7 +63,7 @@ class User {
     }
 
     /**
-     * Loads a user from database.
+     * Load a user from database.
      *
      * @param $username
      * @return User
@@ -87,17 +87,6 @@ class User {
 
     public function passwordMatches($password_string) {
         return password_verify($password_string, $this->password_hash);
-    }
-
-    /**
-     * Set the user id.
-     *
-     * This is just to set the user id when loading a user from database.
-     *
-     * @param mixed $id
-     */
-    private function setId($id) {
-        $this->id = $id;
     }
 
     /**
