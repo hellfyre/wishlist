@@ -1,6 +1,7 @@
 <?php
 
 require_once "DbConnection.php";
+require_once "Wish.php";
 
 /**
  * Class Wishlist
@@ -11,6 +12,7 @@ class Wishlist {
     private $id;
     private $user_id;
     private $title;
+    private $wishes;
 
     /**
      * Wishlist constructor. Do not use.
@@ -18,14 +20,15 @@ class Wishlist {
      * Do not use this constructor. Use the static methods {@see Wishlist::createNew()} and
      * {@see Wishlist::loadFromDb()} instead.
      *
-     * @param $id
-     * @param $user_id
-     * @param $title
+     * @param int $id This wishlist's id.
+     * @param int $user_id The id of the user this wishlist belongs to.
+     * @param string $title This wishlist's title.
      */
     private function __construct($id, $user_id, $title) {
         $this->id = $id;
         $this->user_id = $user_id;
         $this->title = $title;
+        $this->wishes = array();
     }
 
     /**
@@ -34,10 +37,10 @@ class Wishlist {
      * Creates a new wishlist from the given values and instantly saves it to the database. Returns the new wishlist
      * with its assigned id.
      *
-     * @param string $title
-     * @param int $user_id
-     * @return Wishlist
-     * @throws Exception
+     * @param string $title The new wishlist's title.
+     * @param int $user_id The id of the user the new wishlist belongs to.
+     * @return Wishlist The new wishlist with its database id.
+     * @throws Exception If there's an error accessing the database.
      */
     public static function createNew($title, $user_id) {
         try {
@@ -57,9 +60,9 @@ class Wishlist {
     /**
      * Load a wishlist from database.
      *
-     * @param $id
-     * @return Wishlist
-     * @throws Exception
+     * @param int $id The wishlist's id.
+     * @return Wishlist The wishlist loaded from database.
+     * @throws Exception If there's an error accessing the database.
      */
     public static function loadFromDb($id) {
         try {
@@ -74,13 +77,25 @@ class Wishlist {
         $statement->bind_result($title, $user_id);
         $statement->fetch();
 
-        return new Wishlist($id, $user_id, $title);
+        $wishlist = new Wishlist($id, $user_id, $title);
+
+        $statement = $db->prepare("SELECT id_wish FROM wish WHERE id_wishlist = ?");
+        $statement->bind_param("i", $id);
+        $statement->execute();
+        $statement->bind_result($wish_id);
+
+
+        while ($statement->fetch()) {
+            $wishlist->addWish(Wish::loadFromDb($wish_id));
+        }
+
+        return $wishlist;
     }
 
     /**
      * Get the associated user id.
      *
-     * @return int
+     * @return int The id of the user this wishlist belongs to.
      */
     public function getUserId() {
         return $this->user_id;
@@ -89,7 +104,7 @@ class Wishlist {
     /**
      * Update the associated user id.
      *
-     * @param int $user_id
+     * @param int $user_id The id of the user this wishlist belongs to.
      */
     public function setUserId($user_id) {
         $this->user_id = $user_id;
@@ -98,7 +113,7 @@ class Wishlist {
     /**
      * Get the wishlist's title.
      *
-     * @return string
+     * @return string This wishlist's title.
      */
     public function getTitle() {
         return $this->title;
@@ -107,12 +122,35 @@ class Wishlist {
     /**
      * Update the wishlist's title.
      *
-     * @param string $title
+     * @param string $title The new title.
      */
     public function setTitle($title) {
         $this->title = $title;
     }
 
+    /**
+     * Get all wishes belonging to this wishlist.
+     *
+     * @return array All wishes belonging to this wishlist as an array.
+     */
+    public function getWishes() {
+        return $this->wishes;
+    }
+
+    /**
+     * Add a wish.
+     *
+     * @param Wish $wish The new wish.
+     */
+    public function addWish($wish) {
+        $this->wishes[$wish->getId()] = $wish;
+    }
+
+    /**
+     * Save this wishlist to database.
+     *
+     * @throws Exception If there's an error accessing the database.
+     */
     public function save() {
         try {
             $db = getDb();
