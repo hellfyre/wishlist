@@ -57,6 +57,18 @@ class User {
         return User::loadFromDb($username);
     }
 
+    public static function loadFromDb($id) {
+        $db = getDb();
+
+        $statement = $db->prepare("SELECT uName, pwd, first_name, last_name FROM user WHERE idUser = ?");
+        $statement->bind_param("i", $id);
+        $statement->execute();
+        $statement->bind_result($username, $password_hash, $first_name, $last_name);
+        $statement->fetch();
+
+        return new User($id, $username, $password_hash, $first_name, $last_name);
+    }
+
     /**
      * Load a user from database.
      *
@@ -64,7 +76,7 @@ class User {
      * @return User The user loaded from database
      * @throws Exception If there's an error accessing the database
      */
-    public static function loadFromDb($username) {
+    public static function loadFromDbUsername($username) {
         $db = getDb();
 
         $statement = $db->prepare("SELECT idUser, pwd, first_name, last_name FROM user WHERE uName = ?");
