@@ -67,12 +67,7 @@ class Wish {
      * @throws Exception If there's an error accessing the database.
      */
     public static function createNew($wishlist_id, $priority, $title, $amount, $reserved, $description = null, $url = null, $price_low = null, $price_high = null, $reserved_key = null) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            //TODO: actually handle exceptions
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("INSERT INTO wish (id_wishlist, title, description, url, priority, price_low, price_high, amount, reserved_key, reserved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $statement->bind_param("isssissisi", $wishlist_id, $title, $description, $url, $priority, $price_low, $price_high, $amount, $reserved_key, $reserved);
@@ -89,11 +84,7 @@ class Wish {
      * @throws Exception If there's an error accessing the database.
      */
     public static function loadFromDb($id) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("SELECT id_wishlist, title, description, url, priority, price_low, price_high, amount, reserved_key, reserved FROM wish WHERE id_wish = ?");
         $statement->bind_param("i", $id);
@@ -103,6 +94,19 @@ class Wish {
 
         return new Wish($id, $wishlist_id, $priority, $title, $description, $url, $price_low, $price_high, $amount, $reserved_key, $reserved);
 
+    }
+
+    /**
+     * Save this wish to database.
+     *
+     * @throws Exception If there's an error accessing the database.
+     */
+    public function save() {
+        $db = getDb();
+
+        $statement = $db->prepare("REPLACEINTO wish (id_wishlist, title, description, url, priority, price_low, price_high, amount, reserved_key, reserved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $statement->bind_param("isssissisi", $this->wishlist_id, $this->title, $this->description, $this->url, $this->priority, $this->price_low, $this->price_high, $this->amount, $this->reserved_key, $this->reserved);
+        $statement->execute();
     }
 
     /**
@@ -292,23 +296,6 @@ class Wish {
      */
     public function setReserved($reserved) {
         $this->reserved = $reserved;
-    }
-
-    /**
-     * Save this wish to database.
-     *
-     * @throws Exception If there's an error accessing the database.
-     */
-    public function save() {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            throw $exception;
-        }
-
-        $statement = $db->prepare("REPLACEINTO wish (id_wishlist, title, description, url, priority, price_low, price_high, amount, reserved_key, reserved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $statement->bind_param("isssissisi", $this->wishlist_id, $this->title, $this->description, $this->url, $this->priority, $this->price_low, $this->price_high, $this->amount, $this->reserved_key, $this->reserved);
-        $statement->execute();
     }
 
 }

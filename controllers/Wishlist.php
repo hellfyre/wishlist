@@ -12,7 +12,6 @@ class Wishlist {
     private $id;
     private $user_id;
     private $title;
-    private $wishes;
 
     /**
      * Wishlist constructor. Do not use.
@@ -28,7 +27,6 @@ class Wishlist {
         $this->id = $id;
         $this->user_id = $user_id;
         $this->title = $title;
-        $this->wishes = array();
     }
 
     /**
@@ -43,12 +41,7 @@ class Wishlist {
      * @throws Exception If there's an error accessing the database.
      */
     public static function createNew($title, $user_id) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            //TODO: actually handle exceptions
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("INSERT INTO wishlist (id_user, title) VALUES (?, ?)");
         $statement->bind_param("is", $user_id, $title);
@@ -65,11 +58,7 @@ class Wishlist {
      * @throws Exception If there's an error accessing the database.
      */
     public static function loadFromDb($id) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("SELECT title, id_user FROM wishlist WHERE id_wishlist = ?");
         $statement->bind_param("s", $id);
@@ -77,19 +66,51 @@ class Wishlist {
         $statement->bind_result($title, $user_id);
         $statement->fetch();
 
-        $wishlist = new Wishlist($id, $user_id, $title);
+        return new Wishlist($id, $user_id, $title);
+    }
+
+    /**
+     * Get all wishes belonging to this wishlist.
+     *
+     * @return Wish[] An array of wishes.
+     * @throws Exception
+     */
+    public function getWishes() {
+        $db = getDb();
 
         $statement = $db->prepare("SELECT id_wish FROM wish WHERE id_wishlist = ?");
-        $statement->bind_param("i", $id);
+        $statement->bind_param("i", $this->id);
         $statement->execute();
         $statement->bind_result($wish_id);
 
-
+        $wishes = array();
         while ($statement->fetch()) {
-            $wishlist->addWish(Wish::loadFromDb($wish_id));
+            $wishes[$wish_id] = Wish::loadFromDb($wish_id);
         }
 
-        return $wishlist;
+        return $wishes;
+    }
+
+    /**
+     * Save this wishlist to database.
+     *
+     * @throws Exception If there's an error accessing the database.
+     */
+    public function save() {
+        $db = getDb();
+
+        $statement = $db->prepare("REPLACE INTO wishlist (id_user, title) VALUES (?, ?)");
+        $statement->bind_param("is", $this->user_id, $this->title);
+        $statement->execute();
+    }
+
+    /**
+     * Get this wishlist's id.
+     *
+     * @return int This wishlist's id.
+     */
+    public function getId() {
+        return $this->id;
     }
 
     /**
@@ -126,42 +147,6 @@ class Wishlist {
      */
     public function setTitle($title) {
         $this->title = $title;
-    }
-
-    /**
-     * Get all wishes belonging to this wishlist.
-     *
-     * @return array All wishes belonging to this wishlist as an array.
-     */
-    public function getWishes() {
-        return $this->wishes;
-    }
-
-    /**
-     * Add a wish.
-     *
-     * @param Wish $wish The new wish.
-     */
-    public function addWish($wish) {
-        $this->wishes[$wish->getId()] = $wish;
-    }
-
-    /**
-     * Save this wishlist to database.
-     *
-     * @throws Exception If there's an error accessing the database.
-     */
-    public function save() {
-        try {
-            $db = getDb();
-        }
-        catch (Exception $exception) {
-            throw $exception;
-        }
-
-        $statement = $db->prepare("REPLACE INTO wishlist (id_user, title) VALUES (?, ?)");
-        $statement->bind_param("is", $this->user_id, $this->title);
-        $statement->execute();
     }
 
 }

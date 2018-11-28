@@ -23,8 +23,8 @@ class User {
      * @param int $id This user's id
      * @param string $username This user's username
      * @param string $password_hash This user's password hash
-     * @param string|null $first_name This user's first name
-     * @param string|null $last_name This user's last name
+     * @param string $first_name This user's first name
+     * @param string $last_name This user's last name
      */
     private function __construct($id, $username, $password_hash, $first_name = null, $last_name = null) {
         $this->id = $id;
@@ -42,18 +42,13 @@ class User {
      *
      * @param string $username The new user's username
      * @param string $password_hash The new user's password hash
-     * @param string|null $first_name The new user's first name
-     * @param string|null $last_name The new user's last name
+     * @param string $first_name The new user's first name
+     * @param string $last_name The new user's last name
      * @return User The new user with its database id
      * @throws Exception If there's an error accessing the database
      */
     public static function createNew($username, $password_hash, $first_name = null, $last_name = null) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            //TODO: actually handle exceptions
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("INSERT INTO user (uName, pwd, first_name, last_name) VALUES (?, ?, ?, ?)");
         $statement->bind_param("ssss", $username, $password_hash, $first_name, $last_name);
@@ -70,11 +65,7 @@ class User {
      * @throws Exception If there's an error accessing the database
      */
     public static function loadFromDb($username) {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            throw $exception;
-        }
+        $db = getDb();
 
         $statement = $db->prepare("SELECT idUser, pwd, first_name, last_name FROM user WHERE uName = ?");
         $statement->bind_param("s", $username);
@@ -93,6 +84,64 @@ class User {
      */
     public function passwordMatches($password_string) {
         return password_verify($password_string, $this->password_hash);
+    }
+
+    /**
+     * Get all wishlists belonging to this user.
+     *
+     * @return Wishlist[] An array of wishlists.
+     */
+    public function getWishlists() {
+        //TODO: db query
+        return array();
+    }
+
+    /**
+     * Check if a given wishlist belongs to this user.
+     *
+     * @param int $wishlist_id The id of the wishlist to check.
+     * @return bool True if the given wishlist belongs to this user.
+     * @throws Exception
+     */
+    public function hasWishlist($wishlist_id) {
+        $db = getDb();
+
+        $statement = $db->prepare("SELECT COUNT(*) FROM wishlist WHERE id_user = ? AND id_wishlist = ?");
+        $statement->bind_param("ii", $this->id, $wishlist_id);
+        $statement->execute();
+        $statement->bind_result($count);
+        return $count > 0;
+    }
+
+    /**
+     * Get a specific wishlist from this user.
+     *
+     * @param $wishlist_id The id of the wishlist to get.
+     * @return Wishlist The wishlist.
+     * @throws Exception
+     */
+    public function getWishlist($wishlist_id) {
+        return Wishlist::loadFromDb($wishlist_id);
+    }
+
+    /**
+     * Save this user to database.
+     *
+     * @throws Exception If there's an error accessing the database
+     */
+    public function save() {
+        $db = getDb();
+
+        $statement = $db->prepare("REPLACE INTO user (uName, pwd, first_name, last_name) VALUES (?, ?, ?, ?) WHERE idUser = ?");
+        $statement->bind_param(
+            "ssssi",
+            $this->username,
+            $this->password_hash,
+            $this->first_name,
+            $this->last_name,
+            $this->id
+        );
+        $statement->execute();
     }
 
     /**
@@ -132,27 +181,29 @@ class User {
     }
 
     /**
-     * Save this user to database.
-     *
-     * @throws Exception If there's an error accessing the database
+     * Get this user's username.
+     * @return string This user's username.
      */
-    public function save() {
-        try {
-            $db = getDb();
-        } catch (Exception $exception) {
-            throw $exception;
-        }
+    public function getUsername() {
+        return $this->username;
+    }
 
-        $statement = $db->prepare("REPLACE INTO user (uName, pwd, first_name, last_name) VALUES (?, ?, ?, ?) WHERE idUser = ?");
-        $statement->bind_param(
-            "ssssi",
-            $this->username,
-            $this->password_hash,
-            $this->first_name,
-            $this->last_name,
-            $this->id
-        );
-        $statement->execute();
+    /**
+     * Get this user's first name.
+     *
+     * @return string|null This user's first name.
+     */
+    public function getFirstName() {
+        return $this->first_name;
+    }
+
+    /**
+     * Get this user's last name.
+     *
+     * @return string|null This user's last name.
+     */
+    public function getLastName() {
+        return $this->last_name;
     }
 
 }
