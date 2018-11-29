@@ -96,6 +96,14 @@ class Wish {
 
     }
 
+    public function reserve($key=null) {
+        $db = getDb();
+
+        $statement = $db->prepare("UPDATE wish SET reserved = 1, reserved_key = ? WHERE id_wish = ?");
+        $statement->bind_param("si", $key, $this->id);
+        $statement->execute();
+    }
+
     /**
      * Save this wish to database.
      *
@@ -281,21 +289,11 @@ class Wish {
     }
 
     /**
-     * Get the status of this wish's reservation.
+     * Check whether this wish is reserved.
      *
-     * @return bool This wish's reservation status.
+     * @return bool True if this wish is reserved.
      */
-    public function getReserved() {
+    public function isReserved() {
         return $this->reserved;
     }
-
-    /**
-     * Update the reservation status of this wish.
-     *
-     * @param bool $reserved The new status of this wish's reservation.
-     */
-    public function setReserved($reserved) {
-        $this->reserved = $reserved;
-    }
-
 }
