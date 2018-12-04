@@ -104,6 +104,20 @@ class Wish {
         $statement->execute();
     }
 
+    public function unreserve($key=null) {
+        if ($key !== $this->reserved_key) {
+            return false;
+        }
+
+        $db = getDb();
+
+        $statement = $db->prepare("UPDATE wish SET reserved = 0, reserved_key = NULL WHERE id_wish = ?");
+        $statement->bind_param("i", $this->id);
+        $statement->execute();
+
+        return true;
+    }
+
     /**
      * Save this wish to database.
      *

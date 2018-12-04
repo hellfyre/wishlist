@@ -3,6 +3,23 @@ require_once "controllers/User.php";
 require_once "controllers/Wishlist.php";
 require_once "controllers/Wish.php";
 
+session_start();
+
+if (isset($_POST["reservation_wishid"])) {
+    $key = isset($_POST["reservation_key"]) ? $_POST["reservation_key"] : "";
+    $wish = Wish::loadFromDb($_POST["reservation_wishid"]);
+    if (isset($_POST['reservation_action'])) {
+        if ($_POST['reservation_action'] === 'reserve') {
+            $wish->reserve($key);
+        }
+        elseif ($_POST['reservation_action'] === 'unreserve') {
+            if (! $wish->unreserve($key)) {
+                $_SESSION['error'] = 'Falsches Kennwort.';
+            }
+        }
+    }
+}
+
 if (isset($_GET["wishlist"])) {
     try {
         $wishlist = Wishlist::loadFromDb($_GET["wishlist"]);
@@ -45,6 +62,20 @@ if (empty($name)) {
 <div class="container">
     <h1><?php printf("%s - %s", $name, $wishlist->getTitle()); ?></h1>
 </div>
+<?php
+if (isset($_SESSION['error']) && !isset($_POST['reservation_action'])) {
+    printf(
+        "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">
+            <strong>Fehler:</strong> %s
+            <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">
+                <span aria-hidden=\"true\">&times;</span>
+            </button>
+        </div>",
+        $_SESSION['error']
+    );
+    unset($_SESSION['error']);
+}
+?>
 <div class="container">
     <table class="table shadow">
         <thead class="thead-dark">
@@ -62,11 +93,21 @@ if (empty($name)) {
         <?php
         foreach ($wishlist->getWishes() as $wish_id => $wish) {
             if ($wish->isReserved()) {
-                $button = "<button type='button' class='btn btn-danger'>Schon weg :(</button>";
+                if ($key = $wish->getReservedKey()) {
+                    $button = sprintf(
+                        "<button type='button' id='reserve-button' class='btn btn-danger' data-toggle='modal' data-target='#keyModal' data-wishname='%s' data-wishid='%d' data-wishlistid='%d' data-action='unreserve'>Reservierung aufheben</button>",
+                        $wish->getTitle(),
+                        $wish->getId(),
+                        $wish->getWishlistId()
+                    );
+                }
+                else {
+                    $button = "<button type='button' id='reserve-button' class='btn btn-secondary'>Schon weg :(</button>";
+                }
             }
             else {
                 $button = sprintf(
-                    "<button type='button' class='btn btn-success' data-toggle='modal' data-target='#keyModal' data-wishname='%s' data-wishid='%d' data-wishlistid='%d'>Will ich schenken!</button>",
+                    "<button type='button' id='reserve-button' class='btn btn-success' data-toggle='modal' data-target='#keyModal' data-wishname='%s' data-wishid='%d' data-wishlistid='%d' data-action='reserve'>Will ich schenken!</button>",
                     $wish->getTitle(),
                     $wish->getId(),
                     $wish->getWishlistId()
@@ -110,8 +151,6 @@ if (empty($name)) {
             </div>
             <div class="modal-body">
                 <form id="keyModalForm">
-                    <input type="hidden" id="wishid" value="-1"/>
-                    <input type="hidden" id="wishlistid" value="-1"/>
                     <div class="form-group">
                         <label for="reservation-key" class="col-form-label">Du kannst hier ein Kennwort festlegen, um die Reservierung wieder aufheben zu können. Legst du kein Kennwort fest, ist der Wunsch unwiderruflich für dich reserviert und du MUSST ihn schenken.</label>
                         <input type="text" class="form-control" id="reservation-key" name="reservation-key">
@@ -119,7 +158,7 @@ if (empty($name)) {
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Doch nicht.</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
                 <button type="button" class="btn btn-primary" id="reservation-submit">Reservieren!</button>
             </div>
         </div>
@@ -137,6 +176,46 @@ if (empty($name)) {
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
         integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
         crossorigin="anonymous"></script>
-<script src="reservation_modals.js"></script>
+<script>
+    $('#keyModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var wish_name = button.data('wishname');
+        var wish_id = button.data('wishid');
+        var wishlist_id = button.data('wishlistid');
+        var action = button.data('action');
+
+        $('#wishid').val(wish_id);
+        $('#wishlistid').val(wishlist_id);
+
+        if (action == 'reserve') {
+            $('#keyModalLabel').text(wish_name + ' reservieren');
+        }
+        else if (action == 'unreserve') {
+            $('#keyModalLabel').text('Reservierung für ' + wish_name + ' aufheben');
+            $('#reservation-submit').text('Aufheben');
+        }
+    });
+    $('#keyModal').on('shown.bs.modal', function (event) {
+        $('#reservation-key').trigger('focus');
+    });
+    $('#reservation-submit').click(function (event) {
+        var button = $('#reserve-button');
+        var wish_id = button.data('wishid');
+        var wishlist_id = button.data('wishlistid');
+        var action = button.data('action');
+        var reservation_key = $('#reservation-key').val();
+
+        console.log("Wish id is " + wish_id);
+        console.log("Wishlist id is " + wishlist_id);
+        console.log("Reservation key is " + reservation_key);
+        console.log("action is " + action);
+
+        var target = "wishes.php?wishlist=" + wishlist_id;
+        $.post(target, {reservation_action: action, reservation_wishid: wish_id, reservation_key: reservation_key}, function () {
+            $('#keyModal').modal('hide');
+            location.reload(true);
+        });
+    });
+</script>
 </body>
 </html>
