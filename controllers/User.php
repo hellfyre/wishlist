@@ -1,6 +1,7 @@
 <?php
 
 require_once "DbConnection.php";
+require_once "Wishlist.php";
 
 /**
  * Class User
@@ -95,6 +96,7 @@ class User {
      * @return bool True, if the password matches, false otherwise.
      */
     public function passwordMatches($password_string) {
+        error_log(sprintf("Testing %s against %s.", $password_string, $this->password_hash));
         return password_verify($password_string, $this->password_hash);
     }
 
@@ -102,10 +104,26 @@ class User {
      * Get all wishlists belonging to this user.
      *
      * @return Wishlist[] An array of wishlists.
+     * @throws Exception
      */
     public function getWishlists() {
-        //TODO: db query
-        return array();
+        $db = getDb();
+
+        $statement = $db->prepare("SELECT id_wishlist FROM wishlist WHERE id_user = ?");
+        $statement->bind_param("i", $this->id);
+
+        if (!$statement->execute()) {
+            throw new Exception(sprintf("Error getting wishlists: %s", $statement->error));
+        }
+
+        $statement->bind_result($wishlist_id);
+
+        $wishlists = array();
+        while ($statement->fetch()) {
+            $wishlists[$wishlist_id] = Wishlist::loadFromDb($wishlist_id);
+        }
+
+        return $wishlists;
     }
 
     /**

@@ -17,6 +17,9 @@ function getDb() {
     //TODO: Secure against missing configuration parameters in db.ini
 
     $connection = new mysqli($db_ini["host"], $db_ini["user"], $db_ini["password"], $db_ini["database"]);
+    if (!$connection) {
+        throw new Exception(sprintf("Error connecting to database: %s", $connection->error));
+    }
     return $connection;
 }
 
