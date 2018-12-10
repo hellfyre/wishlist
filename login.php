@@ -21,9 +21,9 @@ session_start();
 $wrong_password = false;
 
 if(isset($_POST["username"]) && isset($_POST["current-password"])) {
-    $user = User::loadFromDb($_POST["username"]);
+    $user = User::loadFromDbUsername($_POST["username"]);
     if ($user->passwordMatches($_POST["current-password"])) {
-        $_SESSION["logged_in"] = "true";
+        $_SESSION["logged_in"] = $_POST["username"];
         header("Location: index.php");
     }
     else {

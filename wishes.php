@@ -153,7 +153,7 @@ if (isset($_SESSION['error']) && !isset($_POST['reservation_action'])) {
                 <form id="keyModalForm">
                     <div class="form-group">
                         <label for="reservation-key" class="col-form-label">Du kannst hier ein Kennwort festlegen, um die Reservierung wieder aufheben zu können. Legst du kein Kennwort fest, ist der Wunsch unwiderruflich für dich reserviert und du MUSST ihn schenken.</label>
-                        <input type="text" class="form-control" id="reservation-key" name="reservation-key">
+                        <input type="text" class="form-control" id="reservation-key">
                     </div>
                 </form>
             </div>
@@ -197,6 +197,12 @@ if (isset($_SESSION['error']) && !isset($_POST['reservation_action'])) {
     });
     $('#keyModal').on('shown.bs.modal', function (event) {
         $('#reservation-key').trigger('focus');
+    });
+    $('#reservation-key').keypress(function (event) {
+        if (event.which == 13) {
+            $('#reservation-submit').click();
+            return false;
+        }
     });
     $('#reservation-submit').click(function (event) {
         var button = $('#reserve-button');
