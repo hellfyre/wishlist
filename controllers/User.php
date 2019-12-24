@@ -140,6 +140,7 @@ class User {
         $statement->bind_param("ii", $this->id, $wishlist_id);
         $statement->execute();
         $statement->bind_result($count);
+        $statement->fetch();
         return $count > 0;
     }
 

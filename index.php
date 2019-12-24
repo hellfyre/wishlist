@@ -55,7 +55,7 @@ elseif ($user->getLastName()) {
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                     <?php
                     foreach ($user->getWishlists() as $wishlist_id => $wishlist) {
-                        printf('<a class="dropdown-item" href="wishes.php?wishlist=%s">%s</a>', $wishlist_id, $wishlist->getTitle());
+                        printf('<a class="dropdown-item" href="index.php?wishlist=%s">%s</a>', $wishlist_id, $wishlist->getTitle());
                     }
                     ?>
                 </div>
@@ -75,6 +75,15 @@ elseif ($user->getLastName()) {
         </ul>
     </div>
 </nav>
+
+<?php
+if (isset($_GET['edit']) || isset($_GET['new'])) {
+    require_once dirname(__FILE__) . "/edit_wish.php";
+}
+elseif (isset($_GET['wishlist'])) {
+    require_once dirname(__FILE__) . "/list_of_wishlists.php";
+}
+?>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
