@@ -1,0 +1,22 @@
+<h1>{{ wishlist.title }}</h1>
+
+<p>
+    Owner: {{ wishlist.owner }}
+</p>
+
+<table>
+    <tr>
+        <th>Wish</th>
+        <th>Amount</th>
+        <th>Price range</th>
+        <th>Actions</th>
+    </tr>
+    {% for wish in wishlist.wish_set.all %}
+        <tr>
+            <td>{{ wish.title }}</td>
+            <td>{{ wish.amount }}</td>
+            <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
+            <td>{{ wish.id }} reservieren</td>
+        </tr>
+    {% endfor %}
+</table>
