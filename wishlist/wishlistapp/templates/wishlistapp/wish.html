@@ -1,54 +1,63 @@
+{% load bootstrap4 %}
+{% bootstrap_css %}
+
 {% load wishlistapp_custom_templates %}
 
-<p>
-    <a href="{% url 'wishlist_detail' wishlist.id %}">Back to wishlist {{ wishlist.title }}</a>
-</p>
+<div class="container">
+    <p>
+        <a href="{% url 'wishlist_detail' wishlist.id %}">Back to wishlist {{ wishlist.title }}</a>
+    </p>
 
-<h1>{{ wish.title }}</h1>
+    <h1>{{ wish.title }}</h1>
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<p>
-    <table>
-        <tr>
-            <td>Beschreibung:</td>
-            <td>{{ wish.description|default:"-" }}</td>
-        </tr>
-        <tr>
-            <td>URL:</td>
-            <td>{{ wish.url|default:"-"|urlize }}</td>
-        </tr>
-        <tr>
-            <td>Priorität:</td>
-            <td>{{ wish.priority }}</td>
-        </tr>
-        <tr>
-            <td>Preisspanne:</td>
-            <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
-        </tr>
-        {% if wish.amount > 1 %}
+    <p>
+        <table class="table">
             <tr>
-                <td>Menge:</td>
-                <td>{{ wish.amount }}</td>
+                <td>Beschreibung:</td>
+                <td>{{ wish.description|default:"-" }}</td>
             </tr>
             <tr>
-                <td>Bereits von anderen reserviert:</td>
-                <td>{{ wish.reserved_amount }}</td>
+                <td>URL:</td>
+                <td>{{ wish.url|default:"-"|urlize }}</td>
             </tr>
-        {% endif %}
-    </table>
-</p>
+            <tr>
+                <td>Priorität:</td>
+                <td>{{ wish.priority }}</td>
+            </tr>
+            <tr>
+                <td>Preisspanne:</td>
+                <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
+            </tr>
+            {% if wish.amount > 1 %}
+                <tr>
+                    <td>Menge:</td>
+                    <td>{{ wish.amount }}</td>
+                </tr>
+                <tr>
+                    <td>Bereits von anderen reserviert:</td>
+                    <td>{{ wish.reserved_amount }}</td>
+                </tr>
+            {% endif %}
+        </table>
+    </p>
 
-{% if wish.amount > wish.reserved_amount %}
-<p>
-    <form action="{% url 'wish_reserve' wishlist.id wish.id %}" method="post">
-        {% csrf_token %}
-        {% if wish.amount > 1 %}
-            <input type="number" name="amount" id="amount" value="{{ wish.amount|substract:wish.reserved_amount }}">
-        {% else %}
-            <input type="hidden" name="amount" id="amount" value="1">
-        {% endif %}
-    <input type="submit" value="Reservieren">
-    </form>
-</p>
-{% endif %}
+    {% if wish.amount > wish.reserved_amount %}
+    <p>
+        <form action="{% url 'wish_reserve' wishlist.id wish.id %}" method="post">
+            {% csrf_token %}
+            {% if wish.amount > 1 %}
+                <div class="form-group">
+                    <label for="amount">Zu schenkende Menge</label>
+                    <input type="number" class="form-control" name="amount" id="amount" value="{{ wish.amount|substract:wish.reserved_amount }}">
+                    <small id="amountHelp" class="form-text text-muted">{{ wishlist.owner }} wünscht sich insgesamt {{ wish.amount }} mal "{{ wish.title }}". Trage hier ein, wie viele davon du schnenken möchtest.</small>
+                </div>
+            {% else %}
+                <input type="hidden" name="amount" id="amount" value="1">
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Reservieren</button>
+        </form>
+    </p>
+    {% endif %}
+</div>

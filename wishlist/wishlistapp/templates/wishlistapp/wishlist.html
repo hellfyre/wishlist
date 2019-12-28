@@ -1,26 +1,31 @@
-<p>
-    <a href="{% url 'index' %}">Back to list of wishlists</a>
-</p>
+{% load bootstrap4 %}
+{% bootstrap_css %}
 
-<h1>{{ wishlist.title }}</h1>
+{% load wishlistapp_custom_templates %}
 
-<p>
-    Owner: {{ wishlist.owner }}
-</p>
+<div class="container">
+    <p>
+        <a href="{% url 'index' %}">Back to list of wishlists</a>
+    </p>
 
-<table>
-    <tr>
-        <th>Wish</th>
-        <th>Amount</th>
-        <th>Price range</th>
-        <th>Actions</th>
-    </tr>
-    {% for wish in wishes %}
+    <h1>{{ wishlist.title }}</h1>
+
+    <p>
+        Owner: {{ wishlist.owner }}
+    </p>
+
+    <table class="table table-hover">
         <tr>
-            <td>{{ wish.title }}</td>
-            <td>{{ wish.amount }}</td>
-            <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
-            <td><a href="{% url 'wish_detail' wishlist.id wish.id %}">Details</a></td>
+            <th>Wish</th>
+            <th>Amount</th>
+            <th>Price range</th>
         </tr>
-    {% endfor %}
-</table>
+        {% for wish in wishes %}
+            <tr>
+                <td><a href="{% url 'wish_detail' wishlist.id wish.id %}">{{ wish.title }}</a></td>
+                <td>{{ wish.amount|substract:wish.reserved_amount }}</td>
+                <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
