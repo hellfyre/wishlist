@@ -15,7 +15,7 @@
         <th>Price range</th>
         <th>Actions</th>
     </tr>
-    {% for wish in wishlist.wish_set.all %}
+    {% for wish in wishes %}
         <tr>
             <td>{{ wish.title }}</td>
             <td>{{ wish.amount }}</td>

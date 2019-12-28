@@ -1,3 +1,4 @@
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -13,7 +14,8 @@ def index(request):
 
 def wishlist_detail(request, wishlist_id):
     wishlist = get_object_or_404(Wishlist, pk=wishlist_id)
-    return render(request, 'wishlistapp/wishlist.html', {'wishlist': wishlist})
+    wishes = Wish.objects.filter(wishlist=1).filter(amount__gt=F('reserved_amount'))
+    return render(request, 'wishlistapp/wishlist.html', {'wishlist': wishlist, 'wishes': wishes})
 
 
 def wish_detail(request, wishlist_id, wish_id):

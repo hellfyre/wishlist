@@ -39,6 +39,7 @@
     </table>
 </p>
 
+{% if wish.amount > wish.reserved_amount %}
 <p>
     <form action="{% url 'wish_reserve' wishlist.id wish.id %}" method="post">
         {% csrf_token %}
@@ -50,3 +51,4 @@
     <input type="submit" value="Reservieren">
     </form>
 </p>
+{% endif %}
