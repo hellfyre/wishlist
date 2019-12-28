@@ -1,0 +1,52 @@
+{% load wishlistapp_custom_templates %}
+
+<p>
+    <a href="{% url 'wishlist_detail' wishlist.id %}">Back to wishlist {{ wishlist.title }}</a>
+</p>
+
+<h1>{{ wish.title }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<p>
+    <table>
+        <tr>
+            <td>Beschreibung:</td>
+            <td>{{ wish.description|default:"-" }}</td>
+        </tr>
+        <tr>
+            <td>URL:</td>
+            <td>{{ wish.url|default:"-"|urlize }}</td>
+        </tr>
+        <tr>
+            <td>Priorität:</td>
+            <td>{{ wish.priority }}</td>
+        </tr>
+        <tr>
+            <td>Preisspanne:</td>
+            <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
+        </tr>
+        {% if wish.amount > 1 %}
+            <tr>
+                <td>Menge:</td>
+                <td>{{ wish.amount }}</td>
+            </tr>
+            <tr>
+                <td>Bereits von anderen reserviert:</td>
+                <td>{{ wish.reserved_amount }}</td>
+            </tr>
+        {% endif %}
+    </table>
+</p>
+
+<p>
+    <form action="{% url 'wish_reserve' wishlist.id wish.id %}" method="post">
+        {% csrf_token %}
+        {% if wish.amount > 1 %}
+            <input type="number" name="amount" id="amount" value="{{ wish.amount|substract:wish.reserved_amount }}">
+        {% else %}
+            <input type="hidden" name="amount" id="amount" value="1">
+        {% endif %}
+    <input type="submit" value="Reservieren">
+    </form>
+</p>

@@ -1,7 +1,9 @@
+<h1>List of wishlists</h1>
+
 {% if list_of_wishlists %}
     <ul>
         {% for wishlist in list_of_wishlists %}
-            <li><a href="{% url 'detail' wishlist.id %}">{{ wishlist.title }}</a></li>
+            <li><a href="{% url 'wishlist_detail' wishlist.id %}">{{ wishlist.title }} ({{ wishlist.owner }})</a></li>
         {% endfor %}
     </ul>
 {% else %}

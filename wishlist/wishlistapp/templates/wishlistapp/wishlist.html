@@ -1,3 +1,7 @@
+<p>
+    <a href="{% url 'index' %}">Back to list of wishlists</a>
+</p>
+
 <h1>{{ wishlist.title }}</h1>
 
 <p>
@@ -16,7 +20,7 @@
             <td>{{ wish.title }}</td>
             <td>{{ wish.amount }}</td>
             <td>{{ wish.price_low }} - {{ wish.price_high }}</td>
-            <td>{{ wish.id }} reservieren</td>
+            <td><a href="{% url 'wish_detail' wishlist.id wish.id %}">Details</a></td>
         </tr>
     {% endfor %}
 </table>

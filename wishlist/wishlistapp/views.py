@@ -1,5 +1,6 @@
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 
 from .models import Wish, Wishlist
 
@@ -10,6 +11,27 @@ def index(request):
     return render(request, 'wishlistapp/index.html', context)
 
 
-def detail(request, wishlist_id):
+def wishlist_detail(request, wishlist_id):
     wishlist = get_object_or_404(Wishlist, pk=wishlist_id)
     return render(request, 'wishlistapp/wishlist.html', {'wishlist': wishlist})
+
+
+def wish_detail(request, wishlist_id, wish_id):
+    wishlist = get_object_or_404(Wishlist, pk=wishlist_id)
+    wish = get_object_or_404(Wish, pk=wish_id)
+    return render(request, 'wishlistapp/wish.html', {'wishlist': wishlist, 'wish': wish})
+
+
+def wish_reserve(request, wishlist_id, wish_id):
+    wishlist = get_object_or_404(Wishlist, pk=wishlist_id)
+    wish = get_object_or_404(Wish, pk=wish_id)
+    amount = int(request.POST['amount'])
+    if (amount > (wish.amount - wish.reserved_amount)):
+        return render(
+            request,
+            'wishlistapp/wish.html',
+            {'wishlist': wishlist, 'wish': wish, 'error_message': 'Zu viel reserviert'}
+        )
+    wish.reserved_amount += amount
+    wish.save()
+    return HttpResponseRedirect(reverse('wish_detail', args=(wishlist.id, wish.id)))
